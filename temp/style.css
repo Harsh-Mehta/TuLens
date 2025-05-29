@@ -1,0 +1,122 @@
+/* reset & full-screen */
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; }
+
+/* === Dynamic radial gradients from ar.html === */
+body {
+  background-image:
+    radial-gradient(circle at 20% 20%, #7ea4fc 0%, #f29030 40%, #ffe0c2 70%, transparent 80%),
+    radial-gradient(circle at 80% 30%, #7ea4fc 0%, #ffe0c2 50%, #f29030 80%, transparent 90%),
+    radial-gradient(circle at 50% 70%, #ffe0c2 0%, #7ea4fc 30%, #f29030 60%, transparent 75%);
+  background-size: 400% 400%, 350% 350%, 500% 500%;
+  animation: radialGradientMotion 9s ease-in-out infinite; /* CHANGED: Reduced to 9s for faster motion */
+}
+@keyframes radialGradientMotion {
+  0%   { background-position:20% 80%, 30% 70%, 10% 90%; }
+  25%  { background-position:80% 20%, 70% 30%, 90% 40%; }
+  50%  { background-position:40% 90%, 10% 80%, 30% 10%; }
+  75%  { background-position:10% 10%, 20% 30%, 40% 20%; }
+  100% { background-position:20% 80%, 30% 70%, 10% 90%; }
+}
+
+/* === Welcome / Splash Screen === */
+#welcome-screen {
+  position:absolute; top:0; left:0;
+  width:100vw; height:100vh;
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  z-index:20;
+  padding:20px;
+  background: transparent; /* let body gradient show */
+}
+#welcome-image {
+  max-width:70%; max-height:50vh;
+  object-fit:contain;
+  margin-bottom:30px;
+}
+#startButton {
+  padding:15px 35px;
+  font-size:20px; font-weight:bold;
+  color:black; background:#4faae0;
+  border:none; border-radius:8px;
+  cursor:pointer; z-index:21;
+  box-shadow:0 4px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+#startButton:hover {
+  background:#357ab7;
+  transform: translateY(-2px);
+}
+
+/* === AR container hidden until you click start === */
+#ar-container {
+  position:absolute; top:0; left:0;
+  width:100vw; height:100vh;
+  opacity:0; transition:opacity 1s ease;
+}
+
+/* === Custom loading message === */
+#loading-message {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  color:#fff; font-size:18px;
+  background:rgba(0,0,0,0.6);
+  padding:12px 20px; border-radius:8px;
+  z-index:11; display:none;
+}
+
+/* === Scan prompt & spinner (from ar.html) === */
+.prompt {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.6);
+  color:#fff; padding:12px 20px;
+  border-radius:8px; font-size:18px;
+  display:none; flex-direction:column;
+  align-items:center; z-index:9;
+}
+.spinner {
+  width:50px; height:50px;
+  border:6px solid rgba(255,255,255,0.3);
+  border-top-color:#fff; border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin-bottom:8px;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* === Force A-Frame scenes to stack & fill container === */
+#imageScene, 
+#faceScene {
+  position: absolute !important;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+#imageScene { z-index: 1; }
+#faceScene  { z-index: 2; pointer-events: none; }
+
+/* === Frame overlay (9:16 vertical centered) === */
+#overlayFrame {
+  position: absolute;
+  top: 5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 90vh;
+  width: calc(90vh * 9 / 16); /* Maintain 9:16 aspect ratio */
+  object-fit: cover; /* Changed from contain to cover for better frame fit if image is slightly off */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+  z-index: 3;
+}
+
+/* CHANGED: Explicitly un-mirror A-Frame camera feeds
+a-scene video {
+  transform: scaleX(1) !important; /* Was 'none', now 'scaleX(1)' for explicitness */
+} */
+
+/* Hide MindAR’s default UI overlays— we use custom prompts */
+body.mindar-ui-permanently-disabled .mindar-ui-overlay,
+body.mindar-ui-permanently-disabled .mindar-ui-scanning,
+body.mindar-ui-permanently-disabled .mindar-ui-result {
+  display: none !important;
+}

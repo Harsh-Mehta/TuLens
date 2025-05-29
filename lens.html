@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lens (One-Shot Marker Reveal)</title>
+
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        img#mainFrame {
+            opacity: 0;
+            filter: aplha(opacity=40);
+        }
+    </style>
+</head>
+
+<body>
+    <img src="frame.png" id="mainFrame" alt="" srcset="" style="opacity: 0;">
+
+    <a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+        embedded color-space="sRGB" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true"
+        renderer="colorManagement: true, physicallyCorrectLights: true; precision: mediump">
+        <a-assets>
+            <img id="frameAsset" src="frame.png">
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <a-entity mindar-image-target="targetIndex: 0" reveal-once>
+            <a-image id="frameImage" src="#frameAsset" position="0 0 0" width="1" height="1.777" transparent="true"
+                opacity="0">
+            </a-image>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // AFRAME.registerComponent('reveal-once', {
+        //     init: function () {
+        //         const elMarker = this.el;
+        //         const imgEl = document.querySelector('#frameImage');
+        //         let revealed = false;
+
+        //         elMarker.addEventListener('targetFound', () => {
+        //             if (revealed) return;
+        //             revealed = true;
+
+                    // // Fade in the image
+                    // let opacity = 0;
+                    // const interval = setInterval(() => {
+                    //     opacity = Math.min(opacity + 0.05, 1);
+                    //     imgEl.setAttribute('opacity', opacity);
+                    //     if (opacity >= 1) clearInterval(interval);
+                    // }, 100);
+
+        //             // Stop MindAR tracking
+        //             const sceneEl = elMarker.sceneEl;
+        //             if (sceneEl && sceneEl.systems && sceneEl.systems['mindar-image']) {
+        //                 sceneEl.systems['mindar-image'].stop();
+        //             }
+        //         });
+        //     }
+        // });
+        AFRAME.registerComponent('reveal-once', {
+            init: function () {
+                const elMarker = this.el;
+                const imgEl = document.querySelector('#mainFrame');
+                let revealed = false;
+
+                elMarker.addEventListener('targetFound', () => {
+                    console.log('TARGET FOUND');
+
+                    var tick = function () {
+                        imgEl.style.opacity = +imgEl.style.opacity + 0.01;
+                        if (+imgEl.style.opacity < 1) {
+                            (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+                        }
+                    };
+                    tick();
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

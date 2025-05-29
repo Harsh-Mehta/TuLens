@@ -1,0 +1,81 @@
+<!-- index2.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, user-scalable=no"
+  />
+  <title>Tu Lens AR</title>
+
+  <!-- A-Frame & MindAR -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Splash / Welcome Screen -->
+  <div id="welcome-screen">
+    <img id="welcome-image" src="assets/splash.png" alt="Splash" />
+    <button id="startButton">Start Tu Lens</button>
+  </div>
+
+  <!-- AR Container -->
+  <div id="ar-container">
+    <div id="loading-message">Starting the Journey from Hu Mathi Tu</div>
+    <div id="scan-prompt" class="prompt">Scan the Shibir ID</div>
+    <img id="overlayFrame" src="assets/frame.png" alt="Frame Overlay" />
+
+    <!-- Image‐Tracking Scene (uses rear camera) -->
+    <a-scene
+      id="imageScene"
+      embedded
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      mindar-image="
+        imageTargetSrc: assets/ambrish_badge.mind;
+        maxTrack: 1;
+        autoStart: false;
+      "
+      mindar-image-video-settings='{"facingMode":"environment","audio":false}'
+      style="display: none;"
+    >
+      <a-camera position="0 0 0" active="false"></a-camera>
+      <a-entity id="markerTarget" mindar-image-target="targetIndex: 0"></a-entity>
+    </a-scene>
+
+    <!-- Face‐Tracking Scene (uses front camera) -->
+    <a-scene
+      id="faceScene"
+      embedded
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      mindar-face="
+        autoStart: false;
+      "
+      mindar-face-video-settings='{"facingMode":"user","audio":false}'
+      style="display: none; visibility: hidden;"
+    >
+      <a-assets>
+        <img id="myFaceMask" src="assets/mask.png" />
+      </a-assets>
+      <a-camera active="false"></a-camera>
+      <a-entity id="faceTarget" mindar-face-target="anchorIndex: 10">
+        <a-image
+          src="#myFaceMask"
+          position="0 -1.7 1"
+          width="7"
+          height="5"
+          shader="flat"
+          transparent="true"
+        ></a-image>
+      </a-entity>
+    </a-scene>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
