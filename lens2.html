@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Tu Lens: Journey from Hu Mathi Tu</title>
+
+    <!-- A-Frame + MindAR -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        a-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: none !important;
+            z-index: 1;
+        }
+
+        a-scene canvas {
+            background: none !important;
+        }
+
+        #mainFrame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+            z-index: 2;
+        }
+
+        @media (max-width: 768px) {
+            #mainFrame {
+                width: 100vw;
+                max-height: 100vh;
+                height: auto;
+            }
+        }
+
+        @media (min-width: 769px) {
+            #mainFrame {
+                height: 100vh;
+                max-width: 100vw;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            alert('Scan Shibir Badge to Go From Hu Mathi Tu');
+        });
+    </script>
+    <!-- Overlay frame shown on marker detection -->
+    <img id="mainFrame" src="frame.png" alt="Frame Overlay" />
+
+
+    <a-scene id="arScene" embedded color-space="sRGB"
+        renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true; precision: mediump"
+        vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true" set-env-camera mindar-image="
+        imageTargetSrc: shibir_card.mind;
+        autoStart: true;
+        uiLoading: no; uiError: no; uiScanning: no;
+        videoSettings: { facingMode: 'environment', width: { ideal: 720 }, height: { ideal: 1280 } };
+    " mindar-face="
+        autoStart: false;
+        uiLoading: no; uiError: no; uiScanning: no;
+    ">
+        <a-assets>
+            <img id="frameAsset" src="frame.png" />
+            <img id="faceMaskAsset" src="mask.png" />
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <!-- Marker-based entity -->
+        <a-entity id="markerEntity" mindar-image-target="targetIndex: 0" reveal-once>
+            <a-image src="#frameAsset" position="0 0 0" width="1" height="1.777" transparent="true"
+                opacity="0"></a-image>
+        </a-entity>
+
+        <!-- Face-based entity, hidden until marker triggers -->
+        <a-entity id="faceEntity" mindar-face-target="anchorIndex: 0" visible="false">
+            <a-image src="#faceMaskAsset" position="0 -0.9 0.25" width="4.75" height="4.75" transparent="true"></a-image>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // Fade-in helper
+        function fadeIn(el, onComplete) {
+            el.style.display = 'block';
+            let opacity = 0;
+            function tick() {
+                opacity = Math.min(opacity + 0.02, 1);
+                el.style.opacity = opacity;
+                if (opacity < 1) {
+                    requestAnimationFrame(tick);
+                } else if (onComplete) {
+                    onComplete();
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        // Show frame once, then switch to face AR
+        AFRAME.registerComponent('reveal-once', {
+            init() {
+                const imgEl = document.getElementById('mainFrame');
+                const sceneEl = document.getElementById('arScene');
+                const markerEnt = document.getElementById('markerEntity');
+                const faceEnt = document.getElementById('faceEntity');
+                let shown = false;
+
+                this.el.addEventListener('targetFound', () => {
+                    if (shown) return;
+                    shown = true;
+
+                    fadeIn(imgEl, () => {
+                        // Stop image tracking
+                        const imgSys = sceneEl.systems['mindar-image-system'];
+                        imgSys?.stop();
+                        sceneEl.removeAttribute('mindar-image');
+
+                        // Initialize face AR
+                        sceneEl.setAttribute('mindar-face', {
+                            autoStart: false,
+                            uiLoading: 'no',
+                            uiError: 'no',
+                            uiScanning: 'no'
+                        });
+                        markerEnt.setAttribute('visible', 'false');
+                        faceEnt.setAttribute('visible', 'true');
+
+                        const faceSys = sceneEl.systems['mindar-face-system'];
+                        if (faceSys) {
+                            faceSys.start();
+                            faceSys.switchCamera();
+                        } else {
+                            console.error('MindAR Face System not found.');
+                        }
+                    });
+                });
+            }
+        });
+
+        // Apply rear-camera settings to image AR
+        AFRAME.registerComponent('set-env-camera', {
+            init() {
+                const imgSys = this.el.systems['mindar-image-system'];
+                if (imgSys) {
+                    imgSys.videoSettings = {
+                        facingMode: 'environment',
+                        width: { ideal: 720 },
+                        height: { ideal: 1280 }
+                    };
+                } else {
+                    console.error('mindar-image-system not found.');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
